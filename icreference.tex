@@ -1,0 +1,393 @@
+\documentclass[12pt,a4paper,draft,twoside,onecolumn,titlepage]{book}
+\usepackage{german}
+\pagestyle{headings}
+\title{ImageClass}
+\author{J"urgen Key}
+%\catcode`\_=11
+%\newcommand{\vlabel}[1]{#1\label{#1}}
+\newcommand{\pref}[1]{(Seite \pageref{#1})}
+\newcommand{\method}[1]{{\bf #1}}
+\newcommand{\carg}[1]{$ #1 $}
+\newcommand{\ctyp}[1]{{\tt #1}}
+\newcommand{\class}[1]{{\sc #1}}
+\newcommand{\arglist}[1]{\footnotesize{#1}}
+\begin{document}
+\maketitle
+\tableofcontents
+%\begin{abstract}
+%Diese Bibliothek stellt Funktionen zur Bildverarbeitung zur Verf{\"u}gung. Die
+%beiden herausragenden Features sind dabei die M{\"o}glichkeit, beliebig viele
+%B{\"a}nder zu einem Bild zusammenfassen zu k{\"o}nnen und die Tatsache, da{\ss}
+%die Bilddaten als Gleitkommazahlen repr{\"a}sentiert werden.
+%\end{abstract}
+\part{Allgemeines}
+\chapter{Einf"uhrung}
+Diese Bibliothek stellt Funktionen zur Bildverarbeitung zur Verf{\"u}gung. Die
+beiden herausragenden Features sind dabei die M{\"o}glichkeit, beliebig viele
+B{\"a}nder zu einem Bild zusammenfassen zu k{\"o}nnen und die Tatsache, da{\ss}
+die Bilddaten als Gleitkommazahlen repr{\"a}sentiert werden.
+
+Die Bibliothek stellt sich nicht als Baum dar, der mit fortschreitender Vererbung immer ausgefeiltere Bildverarbeitungsalgorithmen zur Verf"ugung stellt. Es ist vielmehr so, da{\ss} es zwei Klassen gibt, in denen alle verarbeitenden Algorithmen zusammengefa{\ss}t sind. Alle anderen Klassen dienen nur zur Unterst"utzung und besseren Modularisierung verschiedener Algorithmen. Zus"atzlich existiert eine Kategorie, in der alle Klassen zum Speichern und Laden von verschiedenen Bildformaten zusammengefa{\ss}t sind. Tabelle \ref{tableclasscategories} zeigt diese Einteilung.
+\begin{table}
+\small
+\begin{tabular}{|l|l|l|}
+Algorithmen&Tools&Laden und Speichern\\
+EB\_Image \pref{classebimage}&EB\_Filter \pref{classebfilter}&GZ\_Image \pref{classgzimage}\\
+EB\_Band \pref{classebband}&EB\_ColorDistHistogram \pref{classcolordisthistogram}&JPG\_Image \pref{classjpgimage}\\
+&EB\_LookUpTable \pref{classeblookuptable}&PNG\_Image \pref{classpngimage}\\
+&EB\_Kohonen \pref{classebkohonen}&PNM\_Image \pref{classpnmimage}\\
+&PK\_EB\_Kohonen \pref{classpkebkohonen}&PGM\_Image \pref{classpgmimage}\\
+&&PPM\_Image \pref{classppmimage}\\
+\label{tableclasscategories}
+\end{tabular}
+\caption{Kategorieeinteilung der verschiedenen Klassen}
+\end{table}
+
+Dazu kommen nat"urlich noch die verschiedenen Exceptions, die aber hier wegen der "Ubersichtlichkeit noch nicht mit aufgef"uhrt werden.
+\part{Algorithmen enthaltende Klassen}
+\chapter{\class{EB\_Band}}
+\label{classebband}
+\section{"Uberblick}
+Diese Klasse dient als Hauptbestandteil der Klasse EB\_Image \pref{classebimage} und ist der Kern, um den sich die ganze Bibliothek aufbaut. Ihr Zweck ist es, das grundlegende Konzept eines sogenannten {\em Bandes} zu verk"orpern. Das bedeutet im vorliegenden Fall, da{\ss} der Hauptbestandteil der Klasse ein {\it array} ist, welches Werte enth"alt, die die Bildinhalte beschreiben. Im Prinzip enth"alt dieses {\it array} also eine Intensit"atsverteilung. Man bemerkt vielleicht, da{\ss} diese Bibliothek durchaus auch als Werkzeug zur generellen Signalanalyse/verarbeitung benutzt werden kann, denn auf dieser Ebene wird noch nicht festgelegt, wie die Intensit"at interpretiert werden soll --- was sie letzten Endes darstellen soll. 
+
+Au{\ss}er Methoden zum Zugriff auf den Status des Bandes (seine Dimensionen,\ldots;\pref{ebbandorgm}) und einzelne Werte der Intensit"at \pref{ebbandsinglem} existieren noch algorithmische Methoden \pref{ebbandmethodm}. Diese Methoden stellen Algorithmen dar, die sich so dekomponieren lassen, da{\ss} man nicht das ganze Bild auf einmal betrachten mu{\ss}, sondern die B"ander nacheinander bearbeiten kann. Beispiele f"ur solche Algorithmen w"aren Transformationen beliebiger Art (rotieren, skalieren,spiegeln,\ldots). Algorithmen die sich nicht so dekomponieren lassen sind zum Beispiel Farbraumtransformationen, da sie zur Berechnung eines Wertes in einem Band Informationen aus mehreren B"andern ben"otigen. 
+\section{Konstruktoren}
+\subsection{EB\_Band\arglist{(unsigned int,unsigned int,float,float,float)}}
+\subsubsection{Funktion}
+Dieser Konstruktor legt eine neue Instanz der Klasse \class{EB\_Band} im Speicher an.
+\subsubsection{Argumente}
+\begin{description}
+\item[\carg{x}]{Typ \ctyp{unsigned int}. Dieses Argument legt die Breite des neuen Bandes fest.}
+\item[\carg{y}]{Typ \ctyp{unsigned int}. Dieses Argument legt die H"ohe des neuen Bandes fest.}
+\item[\carg{color}]{Typ \ctyp{float}. Dieses Argument legt die Intensit"at aller Pixel des neuen Bandes fest. Die Initialisierung der Pixel erfolgt nur, wenn \carg{color} zwischen \carg{min} und \carg{max} liegt.}
+\item[\carg{min}]{Typ \ctyp{float}. Dieses Argument legt die minimale Intensit"at im neuen Band fest.}
+\item[\carg{max}]{Typ \ctyp{float}. Dieses Argument legt die maximale Intensit"at im neuen Band fest.}
+\end{description}
+\subsection{EB\_Band\arglist{(const EB\_Band *)}}
+\subsubsection{Funktion}
+Dieser Konstruktor legt eine neue Instanz der Klasse \class{EB\_Band} als Kopie einer Instanz der Klasse \class{EB\_Band} an.
+\subsubsection{Argumente}
+\begin{description}
+\item[\carg{Band}]{Typ \ctyp{EB\_Band *}. Dieses Argument zeigt auf eine Instanz, von der die Kopie erzeugt werden soll.}
+\end{description}
+\section{Operatoren}
+\subsection{operator=\arglist{(const EB\_Band \&)}}
+\subsubsection{Funktion}
+Diese Methode weist dem Objekt, f"ur das sie aufgerufen wird, den Inhalt des ParameterObjektes zu. Dabei erfolgt eine tiefe Kopie. Die Gr"o{\ss}e des Bandes wird angepa{\ss}t und s"amtliche Inhalte kopiert. Danach sind die beiden Objekte voneinander unabh"angig.
+\subsubsection{R"uckgabewert}
+Der R"uckgabewert ist vom Typ \ctyp{EB\_Band \&} und stellt eine Referenz auf das Objekt selbst dar. 
+\subsubsection{Argumente}
+\begin{description}
+\item[\carg{other}]{Das Argument ist eine Instanz der Klasse \class{EB\_Band}. Es stellt das Original dar, von dem eine Kopie in dem Band erzeugt wird, f"ur das diese Methode aufgerufen wurde.}
+\end{description}
+\subsection{operator=\arglist{(const float *)}}
+\subsubsection{Funktion}
+Diese Methode kopiert den Inhalt des erhaltenen Arrays in das Band. Die Kopie erfolgt linear, das hei{\ss}t, das keine R"ucksicht auf die Zeilenbreite oder die H"ohe des Bandes genommen wird. Am Status des Bandes selbst wird keine "Anderung vollzogen. Die Werte werden mittels \method{setValue} gesetzt. Das bedeutet, da{\ss} sie ober- und unterhalb des Dynamikbereiches abgeschnitten werden.
+\subsubsection{R"uckgabewert}
+Der R"uckgabewert ist vom Typ \ctyp{EB\_Band \&} und stellt eine Referenz auf das Objekt selbst dar. 
+\subsubsection{Argumente}
+\begin{description}
+\item[\carg{content}]{Typ \ctyp{float *}Das Argument ist ein Zeiger auf ein $C$-Array, dessen Werte in das Band "ubertragen werden sollen.}
+\end{description}
+\subsection{operator=\arglist{(const unsigned char *)}}
+\subsubsection{Funktion}
+Diese Methode kopiert den Inhalt des erhaltenen Arrays in das Band. Die Kopie erfolgt linear, das hei{\ss}t, das keine R"ucksicht auf die Zeilenbreite oder die H"ohe des Bandes genommen wird. Am Status des Bandes selbst wird keine "Anderung vollzogen. Die Werte werden mittels \method{setValue} gesetzt. Das bedeutet, da{\ss} die einzelnen Werte entsprechend der $256$ M"oglichkeiten in den Intensit"atsbereich verteilt werden.
+\subsubsection{R"uckgabewert}
+Der R"uckgabewert ist vom Typ \ctyp{EB\_Band \&} und stellt eine Referenz auf das Objekt selbst dar. 
+\subsubsection{Argumente}
+\begin{description}
+\item[\carg{content}]{Typ \ctyp{unsigned char *}Das Argument ist ein Zeiger auf ein $C$-Array, dessen Werte in das Band "ubertragen werden sollen.}
+\end{description}
+\subsection{operator=\arglist{(const float)}}
+\subsubsection{Funktion}
+Diese Methode die Intensit"at "uberall im Band auf einen konstanten Wert. Am Status des Bandes selbst wird keine "Anderung vollzogen. Die Werte werden mittels \method{setValue} gesetzt. Das bedeutet, da{\ss} sie ober- und unterhalb des Dynamikbereiches abgeschnitten werden.
+\subsubsection{R"uckgabewert}
+Der R"uckgabewert ist vom Typ \ctyp{EB\_Band \&} und stellt eine Referenz auf das Objekt selbst dar. 
+\subsubsection{Argumente}
+\begin{description}
+\item[\carg{content}]{Typ \ctyp{float}Das Argument gibt die konstante Intensit"at an, mit der das Band gef"ullt werden soll.}
+\end{description}
+\section{Statusorientierte Methoden}
+\label{ebbandorgm}
+\subsection{giveWidth\arglist{(void)}}
+\subsubsection{Funktion}
+Liefert die aktuelle H"ohe des Bandes zur"uck.
+\subsubsection{R"uckgabewert}
+Typ \ctyp{unsigned int}.
+\subsubsection{Argumente}
+Diese Methode wird ohne Argumente aufgerufen.
+\subsection{giveHeight\arglist{(void)}}
+\subsubsection{Funktion}
+Liefert die aktuelle Breite des Bandes zur"uck.
+\subsubsection{R"uckgabewert}
+Typ \ctyp{unsigned int}.
+\subsubsection{Argumente}
+Diese Methode wird ohne Argumente aufgerufen.
+\subsection{giveMaxFloat\arglist{(void)}}
+\subsubsection{Funktion}
+Liefert die aktuelle untere Grenze des Intensit"atsbereiches zur"uck.
+\subsubsection{R"uckgabewert}
+Typ \ctyp{float}.
+\subsubsection{Argumente}
+Diese Methode wird ohne Argumente aufgerufen.
+\subsection{giveMinFloat\arglist{(void)}}
+\subsubsection{Funktion}
+Liefert die aktuelle obere Grenze des Intensit"atsbereiches zur"uck.
+\subsubsection{R"uckgabewert}
+Typ \ctyp{float}.
+\subsubsection{Argumente}
+Diese Methode wird ohne Argumente aufgerufen.
+\section{Zugriffsorientierte Methoden}
+\label{ebbandsinglem}
+\subsection{giveCharValue\arglist{(unsigned int)}}
+\subsubsection{Funktion}
+Diese Methode liefert den Intensit"atswert als diskretisierten Wert im Bereich $0$ (unterster Intensit"atswert) bis $255$ (oberster Intensit"atswert).
+\subsubsection{R"uckgabewert}
+Typ \ctyp{unsigned int}. 
+\subsubsection{Argumente}
+\begin{description}
+\item[\carg{index}]{Typ \ctyp{unsigned int}.  Die Indizierung erfolgt hier skalar, also als ob alle Zeilen hintereinanderl"agen. Die Z"ahlung beginnt bei $0$. In einem Bild mit $3$ Spalten und $4$ Zeilen m"u{\ss}te also \carg{index} den Wert $7$ haben, um auf die Intensit"at in der ersten Spalte und zweiten Zeile zuzugreifen.} 
+\end{description}
+\subsection{giveCharValue\arglist{(unsigned int,unsigned int)}}
+\subsubsection{Funktion}
+Diese Methode liefert den Intensit"atswert als diskretisierten Wert im Bereich $0$ (unterster Intensit"atswert) bis $255$ (oberster Intensit"atswert).
+\subsubsection{R"uckgabewert}
+Typ \ctyp{unsigned int}. 
+\subsubsection{Argumente}
+\begin{description}
+\item[\carg{x}]{Typ \ctyp{unsigned int}.  Die Zeile, in der der Intensit"atswert bestimmt werden soll. Die Z"ahlung beginnt bei $0$.} 
+\item[\carg{y}]{Typ \ctyp{unsigned int}.  Die Zeile, in der der Intensit"atswert bestimmt werden soll. Die Z"ahlung beginnt bei $0$.} 
+\end{description}
+\subsection{giveFloatValue\arglist{(unsigned int)}}
+\subsubsection{Funktion}
+Diese Methode liefert den Intensit"atswert.
+\subsubsection{R"uckgabewert}
+Typ \ctyp{float}. 
+\subsubsection{Argumente}
+\begin{description}
+\item[\carg{index}]{Typ \ctyp{unsigned int}.  Die Indizierung erfolgt hier skalar, also als ob alle Zeilen hintereinanderl"agen. Die Z"ahlung beginnt bei $0$. In einem Bild mit $3$ Spalten und $4$ Zeilen m"u{\ss}te also \carg{index} den Wert $7$ haben, um auf die Intensit"at in der ersten Spalte und zweiten Zeile zuzugreifen.} 
+\end{description}
+\subsection{giveFloatValue\arglist{(unsigned int,unsigned int)}}
+\subsubsection{Funktion}
+Diese Methode liefert den Intensit"atswert.
+\subsubsection{R"uckgabewert}
+Typ \ctyp{float}. 
+\subsubsection{Argumente}
+\begin{description}
+\item[\carg{x}]{Typ \ctyp{unsigned int}.  Die Zeile, in der der Intensit"atswert bestimmt werden soll. Die Z"ahlung beginnt bei $0$.} 
+\item[\carg{y}]{Typ \ctyp{unsigned int}.  Die Zeile, in der der Intensit"atswert bestimmt werden soll. Die Z"ahlung beginnt bei $0$.} 
+\end{description}
+\subsection{setValue\arglist{(unsigned int,unsigned int,float)}}
+\subsubsection{Funktion}
+Diese Methode dient dazu, gezielt einzelne Intensit"atswerte zu "andern. Die m"oglichen Werte sind intern auf den Bereich zwischen den gerade g"ultigen oberen und unteren Grenzen des Intensit"atsbereiches beschr"ankt.
+\subsubsection{R"uckgabewert}
+Keiner.
+\subsubsection{Argumente} 
+\begin{description}
+\item[\carg{x}]{Typ \ctyp{unsigned int}.  Die Zeile, in der der Intensit"atswert gesetzt werden soll. Die Z"ahlung beginnt bei $0$.} 
+\item[\carg{y}]{Typ \ctyp{unsigned int}.  Die Zeile, in der der Intensit"atswert gesetzt werden soll. Die Z"ahlung beginnt bei $0$.} 
+\item[\carg{value}]{Typ \ctyp{float}. Der Intensit"atswert, der an die spezifizierte Stelle im Band plaziert werden soll. Ist er kleiner als die untere Grenze des Intensit"atsbereiches, wird deren Wert genommen, analog im Falle gr"o{\ss}er als die obere Grenze des Intensit"atsbereiches.}
+\end{description}
+\subsection{setValue\arglist{(unsigned int,float)}}
+\subsubsection{Funktion}
+Diese Methode dient dazu, gezielt einzelne Intensit"atswerte zu "andern. Die m"oglichen Werte sind intern auf den Bereich zwischen den gerade g"ultigen oberen und unteren Grenzen des Intensit"atsbereiches beschr"ankt.
+\subsubsection{R"uckgabewert}
+Keiner.
+\subsubsection{Argumente} 
+\begin{description}
+\item[\carg{index}]{Typ \ctyp{unsigned int}.  Die Indizierung erfolgt hier skalar, also als ob alle Zeilen hintereinanderl"agen. Die Z"ahlung beginnt bei $0$. In einem Bild mit $3$ Spalten und $4$ Zeilen m"u{\ss}te also \carg{index} den Wert $7$ haben, um auf die Intensit"at in der ersten Spalte und zweiten Zeile zuzugreifen.} 
+\item[\carg{value}]{Typ \ctyp{float}. Der Intensit"atswert, der an die spezifizierte Stelle im Band plaziert werden soll. Ist er kleiner als die untere Grenze des Intensit"atsbereiches, wird deren Wert genommen, analog im Falle gr"o{\ss}er als die obere Grenze des Intensit"atsbereiches.}
+\end{description}
+\subsection{setValue\arglist{(unsigned int,unsigned int,unsigned char)}}
+\subsubsection{Funktion}
+Diese Methode dient dazu, gezielt einzelne Intensit"atswerte zu "andern. Die m"oglichen Werte sind intern auf den Bereich zwischen den gerade g"ultigen oberen und unteren Grenzen des Intensit"atsbereiches beschr"ankt.
+\subsubsection{R"uckgabewert}
+Keiner.
+\subsubsection{Argumente} 
+\begin{description}
+\item[\carg{x}]{Typ \ctyp{unsigned int}.  Die Zeile, in der der Intensit"atswert gesetzt werden soll. Die Z"ahlung beginnt bei $0$.} 
+\item[\carg{y}]{Typ \ctyp{unsigned int}.  Die Zeile, in der der Intensit"atswert gesetzt werden soll. Die Z"ahlung beginnt bei $0$.} 
+\item[\carg{value}]{Typ \ctyp{unsigned char}. Der Intensit"atswert, der an die spezifizierte Stelle im Band plaziert werden soll. Dabei wird ein \ctyp{float}-Wert benutzt, der relativ zur oberen und unteren Intensit"atsbereichsgrenze an derselben Stelle steht, wie das Argument zwischen $0$ und $255$.}
+\end{description}
+\subsection{setValue\arglist{(unsigned int,unsigned char)}}
+\subsubsection{Funktion}
+Diese Methode dient dazu, gezielt einzelne Intensit"atswerte zu "andern. Die m"oglichen Werte sind intern auf den Bereich zwischen den gerade g"ultigen oberen und unteren Grenzen des Intensit"atsbereiches beschr"ankt.
+\subsubsection{R"uckgabewert}
+Keiner.
+\subsubsection{Argumente} 
+\begin{description}
+\item[\carg{index}]{Typ \ctyp{unsigned int}.  Die Indizierung erfolgt hier skalar, also als ob alle Zeilen hintereinanderl"agen. Die Z"ahlung beginnt bei $0$. In einem Bild mit $3$ Spalten und $4$ Zeilen m"u{\ss}te also \carg{index} den Wert $7$ haben, um auf die Intensit"at in der ersten Spalte und zweiten Zeile zuzugreifen.} 
+\item[\carg{value}]{Typ \ctyp{unsigned char}. Der Intensit"atswert, der an die spezifizierte Stelle im Band plaziert werden soll. Dabei wird ein \ctyp{float}-Wert benutzt, der relativ zur oberen und unteren Intensit"atsbereichsgrenze an derselben Stelle steht, wie das Argument zwischen $0$ und $255$.}
+\end{description}
+\section{Algorithmisch orientierte Methoden}
+\label{ebbandmethodm}
+\subsection{aequalize{\arglist(void)}}
+\subsubsection{Funktion}
+Diese Methode f"uhrt einen Histogrammausgleich durch. Sie benutzt Methoden der Klasse \class{EB\_ColorDistHistogram} \pref{classcolordisthistogram} und die Methode \method{lookUp} der Klasse \class{EB\_Band}.
+\subsubsection{R"uckgabewert}
+Der R"uckgabewert ist vom Typ \ctyp{EB\_Band \&} und stellt eine Referenz auf das Objekt selbst dar. 
+\subsubsection{Argumente}
+Diese Methode wird ohne Argumente aufgerufen.
+\subsection{gammaCorrect{\arglist(float)}}
+\subsubsection{Funktion}
+Diese Methode f"uhrt eine Gammakorrektur aus. Sie benutzt Methoden der Klasse \class{EB\_LookUpTable} \pref{classeblookuptable} und die Methode \method{lookUp} der Klasse \class{EB\_Band}.
+\subsubsection{R"uckgabewert}
+Der R"uckgabewert ist vom Typ \ctyp{EB\_Band \&} und stellt eine Referenz auf das Objekt selbst dar. 
+\subsubsection{Argumente}
+\begin{description}
+\item[\carg{factor}]{Typ \ctyp{float}. Bestimmt die "Anderung im Band. Werte gr"o{\ss}er als $1$ erh"ohen die Intensit"at, Werte kleiner als $1$ verringern sie. Bei $factor=1$ bleibt der Zustand des Bandes erhalten.}
+\end{description}
+\subsection{changeContrast{\arglist(float)}}
+\subsubsection{Funktion}
+Diese Methode f"uhrt eine Kontrast"anderung aus. Sie benutzt Methoden der Klasse \class{EB\_LookUpTable} \pref{classeblookuptable} und die Methode \method{lookUp} der Klasse \class{EB\_Band}.
+\subsubsection{R"uckgabewert}
+Der R"uckgabewert ist vom Typ \ctyp{EB\_Band \&} und stellt eine Referenz auf das Objekt selbst dar. 
+\subsubsection{Argumente}
+\begin{description}
+\item[\carg{factor}]{Typ \ctyp{float}. Bestimmt die "Anderung im Band. Werte gr"o{\ss}er als $0$ erh"ohen den Kontrast, Werte kleiner als $0$ verringern ihn. Bei $factor=0.0$ bleibt der Zustand des Bandes erhalten.}
+\end{description}
+\subsection{convolute{\arglist(EB\_Filter \&)}}
+\subsubsection{Funktion}
+Diese Methode faltet das Band mit einem maximal zweidimensionalen Filter. Die Randbehandlung erfolgt durch Nichtbeachtung der nicht auf dem Band liegenden Filterkoeffizienten.
+\subsubsection{R"uckgabewert}
+Der R"uckgabewert ist vom Typ \ctyp{EB\_Band \&} und stellt eine Referenz auf das Objekt selbst dar. 
+\subsubsection{Argumente}
+\begin{description}
+\item[\carg{filter}]{Das Argument ist eine Instanz der Klasse \class{EB\_Filter} \pref{classebfilter}. Die Dimensionen des Filters d"urfen beliebig gro{\ss} sein.}
+\end{description}
+\subsection{convolute{\arglist(EB\_Filter \&,EB\_Band \&,int,int,float)}}
+\subsubsection{Funktion}
+Diese Methode faltet das Band mit einem maximal zweidimensionalen Filter. Die Randbehandlung erfolgt durch Nichtbeachtung der nicht auf dem Band liegenden Filterkoeffizienten. Es wird eine Maske einbezogen, die bestimmt, wo gefiltert wird und wie stark das Ergebnis der Filterung vom urspr"unglichen Wert "uberlagert wird.
+\subsubsection{R"uckgabewert}
+Der R"uckgabewert ist vom Typ \ctyp{EB\_Band \&} und stellt eine Referenz auf das Objekt selbst dar. 
+\subsubsection{Argumente}
+\begin{description}
+\item[\carg{filter}]{Das Argument ist eine Instanz der Klasse \class{EB\_Filter} \pref{classebfilter}. Die Dimensionen des Filters d"urfen beliebig gro{\ss} sein.}
+\item[\carg{alphachannel}]{Das Argument ist eine Instanz der Klasse \class{EB\_Band}. Es wirkt als Maske und bestimmt, ob das Resultat an einer bestimmten Stelle der gefilterte oder der urspr"ungliche Wert ist.}
+\item[\carg{left}]{Typ \ctyp{int}. Dieses Argument gibt die horizontale Position der Maske "uber dem Band an. Positive Werte bedeuten eine Position weiter rechts, negative eine Position weiter links. (Default$=0$)}
+\item[\carg{top}]{Typ \ctyp{int}. Dieses Argument gibt die vertikale Positionierung der Maske "uber dem Band an. Positive Werte bedeuten eine Position weiter oben, negative eine Position weiter unten.(Default$=0$)}
+\item[\carg{factor}]{Typ \ctyp{float}, $-1.0\le factor\le 1.0$. Dieses Argument gibt an, wie sich das Ergebnis aus Original- und Filterwerten zusammensetzt. Dazu werden zwei F"alle unterschieden:
+\begin{description}
+\item[$factor\ge 0.0$]{in diesem Fall bestimmt \carg{factor}, ob abh"angig von der Intensit"at in der Maske der Filterwert oder der Originalwert benutzt werden soll. Dazu wird unter Beachtung des vertikalen und horizontalen Offsets die Intensit"at in \carg{alphachannel} "uber der entsprechenden Position bestimmt. Diese wird dann in einen Wert relativ zur Bandbreite von \carg{alphachannel} umgerechnet. Dieser liegt zwischen $0.0$ und $1.0$. ist \carg{factor} kleiner als dieser Wert, wird der Originalwert benutzt, sonst der Filterwert. In Bereichen, die nicht von der Maske "uberdeckt werden, wird der Originalwert benutzt.}
+\item[$factor< 0.0$]{In diesem Fall wird immer der Originalwert mit dem Filterwert verrechnet. Dazu wird wieder die Intensit"at der Maske an der entsprechenden Stelle unter Ber"ucksichtigung der Offsets ermittelt und anschlie{\ss}end auf einen Bereich von $0.0$ bis $1.0$ normiert. Je h"oher dieser Wert ist, desto h"oher ist der Einflu{\ss} des Filterwertes auf das endg"ultige Ergebnis.}
+\end{description}
+(Default$=0.0$)}
+\end{description}
+\subsection{copyWholeTo\arglist{(EB\_Band \&,int,int)}}
+\subsubsection{Funktion}
+Diese Methode kopiert das Band in ein anderes, als Argument angegebenes. Dabei ersetzt ein Pixel des Bandes das entsprechende des Zieles vollst"andig. Pixel im Ziel, die nicht vom Quellband "uberdeckt werden, behalten ihre urspr"ungliche Intensit"at. Die Lage der linken oberen Ecke der Quelle zu der des Zieles kann angegeben werden.
+\subsubsection{R"uckgabewert}
+Der R"uckgabewert ist vom Typ \ctyp{EB\_Band \&} und stellt eine Referenz auf das Objekt selbst dar. 
+\subsubsection{Argumente}
+\begin{description}
+\item[\carg{filter}]{Das Argument ist eine Instanz der Klasse \class{EB\_Band} \pref{classebband}. Dieses Band stellt das Ziel der Kopie dar.}
+\item[\carg{left}]{Typ \ctyp{int}. Dieses Argument gibt die horizontale Positionierung der Kopie in \carg{other} an. Positive Werte bedeuten eine Position weiter rechts, negative eine Position weiter links.}
+\item[\carg{top}]{Typ \ctyp{int}. Dieses Argument gibt die vertikale Positionierung der Kopie in \carg{other} an. Positive Werte bedeuten eine Position weiter oben, negative eine Position weiter unten.}
+\end{description}
+\subsection{copyWholeFrom\arglist{(EB\_Band \&,int,int)}}
+\subsubsection{Funktion}
+Diese Methode kopiert ein Band in das Objekt, f"ur das diese Methode aufgerufen wurde. Dabei ersetzt ein Pixel des Quellbandes das entsprechende des Zieles vollst"andig. Pixel im Ziel, die nicht vom Quellband "uberdeckt werden, behalten ihre urspr"ungliche Intensit"at. Die Lage der linken oberen Ecke der Quelle zu der des Zieles kann angegeben werden.
+\subsubsection{R"uckgabewert}
+Der R"uckgabewert ist vom Typ \ctyp{EB\_Band \&} und stellt eine Referenz auf das Objekt selbst dar. 
+\subsubsection{Argumente}
+\begin{description}
+\item[\carg{filter}]{Das Argument ist eine Instanz der Klasse \class{EB\_Band} \pref{classebband}. Dieses Band stellt die Quelle der Kopie dar.}
+\item[\carg{left}]{Typ \ctyp{int}. Dieses Argument gibt die horizontale Positionierung der Kopie im Band an. Positive Werte bedeuten eine Position weiter rechts, negative eine Position weiter links.}
+\item[\carg{top}]{Typ \ctyp{int}. Dieses Argument gibt die vertikale Positionierung der Kopie im Band an. Positive Werte bedeuten eine Position weiter oben, negative eine Position weiter unten.}
+\end{description}
+\subsection{doubleMirror\arglist{(void)}}
+\subsubsection{Funktion}
+Diese Methode spiegelt den Inhalt des Bandes an der jeweiligen Mitte in horizontaler und vertikaler Richtung.
+\subsubsection{R"uckgabewert}
+Der R"uckgabewert ist vom Typ \ctyp{EB\_Band \&} und stellt eine Referenz auf das Objekt selbst dar. 
+\subsubsection{Argumente}
+Diese Methode wird ohne Argumente aufgerufen.
+\subsection{overlayBand\arglist{(EB\_Band \&,float,float,int,int)}}
+\subsubsection{Funktion}
+Diese Methode "uberlagert zwei B"ander. Das Ergebnis wird in dem Band abgelegt, f"ur das die Methode aufgerufen wurde. Die St"arke, mit der jedes Band in das Endergebnis eingeht, kann eingestellt werden.
+\subsubsection{R"uckgabewert}
+Der R"uckgabewert ist vom Typ \ctyp{EB\_Band \&} und stellt eine Referenz auf das Objekt selbst dar. 
+\subsubsection{Argumente}
+\begin{description}
+\item[\carg{other}]{Das Argument ist eine Instanz der Klasse \class{EB\_Band} \pref{classebband}.}
+\item[\carg{otherfac}]{Typ \ctyp{float}. Dieses Argument bestimmt, wie gro{\ss} der Anteil der Intensit"at des Arguments \carg{other} am Ergebnis ist. Dieser Faktor wird errechnet aus $otherfac/(otherfac+ownfac)$.}
+\item[\carg{ownfac}]{Typ \ctyp{float}. Dieses Argument bestimmt, wie gro{\ss} der Anteil der Intensit"at des Objektes, f"ur das die Methode aufgerufen wurde, am Ergebnis ist. Dieser Faktor wird errechnet aus $ownfac/(otherfac+ownfac)$.}
+\item[\carg{left}]{Typ \ctyp{int}. Dieses Argument gibt die horizontale Position von \carg{other} "uber dem Band an. Positive Werte bedeuten eine Position weiter rechts, negative eine Position weiter links. (Default$=0$)}
+\item[\carg{top}]{Typ \ctyp{int}. Dieses Argument gibt die vertikale Positionierung von \carg{other} "uber dem Band an. Positive Werte bedeuten eine Position weiter oben, negative eine Position weiter unten.(Default$=0$)}
+\end{description}
+\subsection{overlayBand\arglist{(EB\_Band \&,EB\_Band \&,int,int,int,int)}}
+\subsubsection{Funktion}
+Diese Methode "uberlagert zwei B"ander. Das Ergebnis wird in dem Band abgelegt, f"ur das die Methode aufgerufen wurde. Die St"arke, mit der jedes Band in das Endergebnis eingeht, wird durch die Intensit"atswerte einer Maske bestimmt.
+\subsubsection{R"uckgabewert}
+Der R"uckgabewert ist vom Typ \ctyp{EB\_Band \&} und stellt eine Referenz auf das Objekt selbst dar. 
+\subsubsection{Argumente}
+\begin{description}
+\item[\carg{other}]{Das Argument ist eine Instanz der Klasse \class{EB\_Band} \pref{classebband}.}
+\item[\carg{alphachannel}]{Das Argument ist eine Instanz der Klasse \class{EB\_Band}. Es wirkt als Maske und bestimmt, mit welchem Anteil beide B"ander in das Resultat eingehen: Liegt die Intensit"at nahe der unteren Grenze, bestimmt das Objekt, f"ur das die Methode aufgerufen wurde mehr das Ergebnis, liegt sie weiter oben, bestimmt \carg{other} mehr das Ergebnis.}
+\item[\carg{oleft}]{Typ \ctyp{int}. Dieses Argument gibt die horizontale Position von \carg{other} "uber dem Band an. Positive Werte bedeuten eine Position weiter rechts, negative eine Position weiter links. (Default$=0$)}
+\item[\carg{otop}]{Typ \ctyp{int}. Dieses Argument gibt die vertikale Positionierung von \carg{other} "uber dem Band an. Positive Werte bedeuten eine Position weiter oben, negative eine Position weiter unten.(Default$=0$)}
+\item[\carg{aleft}]{Typ \ctyp{int}. Dieses Argument gibt die horizontale Position der Maske "uber dem Band an. Positive Werte bedeuten eine Position weiter rechts, negative eine Position weiter links. (Default$=0$)}
+\item[\carg{atop}]{Typ \ctyp{int}. Dieses Argument gibt die vertikale Positionierung der Maske "uber dem Band an. Positive Werte bedeuten eine Position weiter oben, negative eine Position weiter unten.(Default$=0$)}
+\end{description}
+\subsection{rescaleIntensity\arglist{(float,float)}}
+\subsubsection{Funktion}
+Diese Methode ver"andert den Intensit"atsbereich des Bandes. Der Intensit"atsbereich wird durch zwei Werte beschrieben, die den gr"o{\ss}ten und kleinsten m"oglichen Wert im Band darstellen. Diese Methode "andert zum einen diese Werte und pa{\ss}t zum anderen alle Werte des Bandes an den neuen Intensit"atsbereich an. Lag also ein Wert bei einem Drittel des alten Bereiches, liegt er auch im neuen bei einem Drittel.
+\subsubsection{R"uckgabewert}
+Der R"uckgabewert ist vom Typ \ctyp{EB\_Band \&} und stellt eine Referenz auf das Objekt selbst dar. 
+\subsubsection{Argumente}
+\begin{description}
+\item[\carg{newmin}]{Typ \ctyp{float}. Dieses Argument gibt die untere Grenze des Intensit"atsbereiches an.}
+\item[\carg{newmax}]{Typ \ctyp{float}. Dieses Argument gibt die obere Grenze des Intensit"atsbereiches an.}
+\end{description}
+\subsection{rotate\arglist{(float)}}
+\subsubsection{Funktion}
+Diese Methode rotiert ein Band um seinen Mittelpunkt. Dabei geschieht eine lineare Interpolation. Elemente des Bildes, die nach der Drehung au{\ss}erhalb des Bildes liegen, werden nicht ber"ucksichtigt. Gebiete, die nach der Drehung keinen Inhalt haben, erhalten die geringste m"ogliche Intensit"at zugewiesen. Es erfolgt keine Gr"o{\ss}enanpassung des Bildes.
+\subsubsection{R"uckgabewert}
+Der R"uckgabewert ist vom Typ \ctyp{EB\_Band \&} und stellt eine Referenz auf das Objekt selbst dar. 
+\subsubsection{Argumente}
+\begin{description}
+\item[\carg{angle}]{Typ \ctyp{float}. Dieses Argument gibt den Winkel an, um den gedreht werden soll. Positive Werte bedeuten eine Drehung entgegen dem Uhrzeigersinn, negative mit dem Uhrzeigersinn. Die Winkel werden als Grad interpretiert.}
+\end{description}
+\subsection{scale\arglist{(unsigned int,unsigned int)}}
+\subsubsection{Funktion}
+Diese Methode skaliert ein Band unter linearer Interpolation.
+\subsubsection{R"uckgabewert}
+Der R"uckgabewert ist vom Typ \ctyp{EB\_Band \&} und stellt eine Referenz auf das Objekt selbst dar. 
+\subsubsection{Argumente}
+\begin{description}
+\item[\carg{newwidth}]{Typ \ctyp{unsigned int}. Dieses Argument bestimmt die Breite des Resultats.}
+\item[\carg{newheight}]{Typ \ctyp{unsigned int}. Dieses Argument bestimmt die H"ohe des Resultats.}
+\end{description}
+
+
+
+
+
+\chapter{EB\_Image}
+\label{classebimage}
+\part{Hilfsmittel-Klassen}
+\chapter{EB\_Filter (Kind von EB\_Band)}
+\label{classebfilter}
+\chapter{EB\_LookUpTable}
+\label{classeblookuptable}
+\chapter{EB\_ColorDistHistogram}
+\label{classcolordisthistogram}
+\chapter{EB\_Kohonen}
+\label{classebkohonen}
+\chapter{PK\_EB\_Kohonen}
+\label{classpkebkohonen}
+\part{Klassen zum Speichern und Laden}
+\chapter{PPM\_Image}
+\label{classppmimage}
+\chapter{PGM\_Image}
+\label{classpgmimage}
+\chapter{PNM\_Image}
+\label{classpnmimage}
+\chapter{PNG\_Image}
+\label{classpngimage}
+\chapter{JPG\_Image}
+\label{classjpgimage}
+\chapter{GZ\_Image}
+\label{classgzimage}
+\end{document}
+

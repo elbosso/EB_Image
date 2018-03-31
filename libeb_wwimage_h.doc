@@ -1,0 +1,72 @@
+/**@name Grundlegendes*/
+//@{
+  //@Include: EB_Band.h
+  //@Include: EB_ColorDistHistogram.h
+  //@Include: EB_Image.h
+  //@Include: EB_ImageAdvancement.h
+  //@Include: EB_ImageCoordinatePair.h
+  //@Include: EB_ImageRegion.h
+  //@Include: EB_LookUpTable.h
+  //@Include: EB_PixelDescriptor.h
+//@}
+/**@name Filter*/
+//@{
+  //@Include: EB_Filter.h
+  //@Include: EB_SinusFilter.h
+//@}
+/**@name Koordinatentransformationen*/
+//@{
+  //@Include: EB_ImageTransformation.h
+  /**@name Polar-kartesische Transformationen*/
+  //@{
+	//@Include: EB_PolCartTransformation.h
+	//@Include: EB_LogPolarTransformation.h
+  //@}
+  //@Include: EB_SinusRipplesTransformation.h
+  //@Include: EB_SwirlTransformation.h
+  //@Include: EB_LensTransformation.h
+//@}
+/**@name Interpolatoren*/
+//@{
+  //@Include: EB_TransformationInterpolator.h
+  /**@name Bilineare Interpolatoren*/
+  //@{
+  	//@Include: EB_BilinearInterpolator.h
+  	//@Include: EB_BilinearTriangle.h
+  //@}
+  /**@name Bikubische Interpolatoren*/
+  //@{
+  	//@Include: EB_BicubicInterpolator.h
+  	//@Include: EB_BicubicSine.h
+  	//@Include: EB_BicubicSpline.h
+  //@}
+//@}
+/**@name Pixeloperationen (Intensitätstransformationen)*/
+//@{
+  //@Include: EB_IntensityTransformation.h
+  //@Include: EB_IntensityGammaTrans.h
+  //@Include: EB_IntensitySigmoidTrans.h
+//@}
+/**@name Farbsegmentationsoperationen*/
+//@{
+  //@Include: EB_ImageSegmentation.h
+  //@Include: EB_HueSegmentation.h
+//@}
+/**@name Unterstützte Bildformate*/
+//@{
+  //@Include: PNM_Image.h
+  //@Include: JPG_Image.h
+  //@Include: PNG_Image.h
+  //@Include: GZ_Image.h
+  //@Include: TIFF_Image.h
+  //@Include: BMP_Image.h
+//@}
+/**@name Exceptions*/
+//@{
+  //@Include: EB_Image_Exceptions.h
+//@}
+/**@name Unterstützende Funktionen*/
+//@{
+  //@Include: EB_ImageHelperFunctions.h
+//@}
+
