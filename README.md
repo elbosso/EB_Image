@@ -11,5 +11,6 @@
 [![contributions welcome](https://img.shields.io/badge/contributions-welcome-brightgreen.svg?style=flat)](https://github.com/elbosso/EB_Image/issues)
 [![GitHub contributors](https://img.shields.io/github/contributors/elbosso/EB_Image.svg)](https://GitHub.com/elbosso/EB_Image/graphs/contributors/)
 [![Github All Releases](https://img.shields.io/github/downloads/elbosso/EB_Image/total.svg)](https://github.com/elbosso/EB_Image)
+[![Website elbosso.github.io](https://img.shields.io/website-up-down-green-red/https/elbosso.github.io.svg)](https://elbosso.github.io/)
 
 An image processing library from way back...
